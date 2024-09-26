@@ -23,6 +23,9 @@ public class Main extends ApplicationAdapter {
     private Snake snake;
     private Food food;
 
+    private float moveTimer = 0; // To track time for movement
+    private float moveDelay = 0.2f; // Delay between movements (in seconds)
+
     @Override
     public void create() {
         // Setup camera, batch, and font
@@ -59,7 +62,11 @@ public class Main extends ApplicationAdapter {
 
         // Handle input and movement
         handleInput();
-        snake.move();
+        moveTimer += Gdx.graphics.getDeltaTime();
+        if (moveTimer >= moveDelay) {
+            snake.move(); // Move snake only when the delay is exceeded
+            moveTimer = 0; // Reset the timer
+        }
 
         // Check for game over
         if (snake.isGameOver(boardWidth, boardHeight)) {
