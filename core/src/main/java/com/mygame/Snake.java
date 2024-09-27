@@ -1,7 +1,7 @@
 package com.mygame;
 
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.ArrayList;
 
@@ -10,9 +10,11 @@ public class Snake {
     private int velocityX, velocityY;
     private int tileSize;
     private boolean gameOver;
+    private Texture snakeTexture; // Texture for the snake
 
-    public Snake(int tileSize) {
+    public Snake(int tileSize, Texture snakeTexture) {
         this.tileSize = tileSize;
+        this.snakeTexture = snakeTexture; // Initialize snake texture
         snakeBody = new ArrayList<>();
         snakeBody.add(new Tile(5, 5));  // Initial snake head position
         velocityX = 1; // Initial velocity
@@ -32,10 +34,9 @@ public class Snake {
         snakeBody.get(0).y += velocityY;
     }
 
-    public void draw(ShapeRenderer shapeRenderer) {
-        shapeRenderer.setColor(Color.GREEN);
+    public void draw(SpriteBatch spriteBatch) { // Change to accept SpriteBatch
         for (Tile tile : snakeBody) {
-            shapeRenderer.rect(tile.x * tileSize, tile.y * tileSize, tileSize, tileSize);
+            spriteBatch.draw(snakeTexture, tile.x * tileSize, tile.y * tileSize, tileSize, tileSize);
         }
     }
 
