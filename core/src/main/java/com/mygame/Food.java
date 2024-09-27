@@ -1,7 +1,7 @@
 package com.mygame;
 
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -11,11 +11,13 @@ public class Food {
     private int tileSize;
     private int boardWidth, boardHeight;
     private Random random;
+    private Texture foodTexture; // Texture for the food
 
-    public Food(int tileSize, int boardWidth, int boardHeight) {
+    public Food(int tileSize, int boardWidth, int boardHeight, Texture foodTexture) {
         this.tileSize = tileSize;
         this.boardWidth = boardWidth;
         this.boardHeight = boardHeight;
+        this.foodTexture = foodTexture; // Initialize food texture
         random = new Random();
         placeFood(new ArrayList<>());
     }
@@ -36,9 +38,8 @@ public class Food {
         }
     }
 
-    public void draw(ShapeRenderer shapeRenderer) {
-        shapeRenderer.setColor(Color.RED);
-        shapeRenderer.rect(x * tileSize, y * tileSize, tileSize, tileSize);
+    public void draw(SpriteBatch spriteBatch) {
+        spriteBatch.draw(foodTexture, x * tileSize, y * tileSize, tileSize, tileSize);
     }
 
     public int getX() {
