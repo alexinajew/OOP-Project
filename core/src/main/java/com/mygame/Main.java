@@ -32,6 +32,8 @@ public class Main extends ApplicationAdapter {
     private int boardWidth = 400; // Adjust board width
     private int boardHeight = 400; // Adjust board height
 
+    private boolean isGameOver = false;
+
     @Override
     public void create() {
         batch = new SpriteBatch();
@@ -61,41 +63,41 @@ public class Main extends ApplicationAdapter {
         // Clear the screen
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        // Update and apply the camera
+    
         viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
         camera.update();
-        batch.setProjectionMatrix(camera.combined); // Set projection matrix for batch
-
-        // Handle input and movement
-        handleInput();
-
-        // Update this and in gameover//snake.java
-        moveTimer += Gdx.graphics.getDeltaTime();
-        if (moveTimer >= moveDelay) {
-            snake.move();
-            moveTimer = 0;
-
-
-            if (snake.isGameOver(boardWidth, boardHeight)) {
-                renderGameOver();
-                return; // Stop further game logic on game over
-            }
-
-            // Check if snake eats food
-            if (snake.checkCollision(food.getX(), food.getY())) {
-                snake.grow();
-                food.placeFood(snake.getSnakeBody());
+        batch.setProjectionMatrix(camera.combined);
+    
+        batch.begin(); // Start batch for drawing
+    
+        grid.draw(batch);
+        food.draw(batch);
+        snake.draw(batch);
+    
+        if (isGameOver) {
+            renderGameOver(); // Display the game over screen
+        } else {
+            // Handle input and game logic if not game over
+            handleInput();
+            moveTimer += Gdx.graphics.getDeltaTime();
+            if (moveTimer >= moveDelay) {
+                snake.move();
+                moveTimer = 0;
+    
+                if (snake.isGameOver(boardWidth, boardHeight)) {
+                    isGameOver = true; // Trigger game over
+                }
+    
+                if (snake.checkCollision(food.getX(), food.getY())) {
+                    snake.grow();
+                    food.placeFood(snake.getSnakeBody());
+                }
             }
         }
-
-        // Draw everything
-        batch.begin();
-        grid.draw(batch); // Draw grid
-        food.draw(batch); // Draw food
-        snake.draw(batch); // Draw snake
-        batch.end();
+    
+        batch.end(); // End batch for drawing
     }
+    
 
     private void handleInput() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.UP) && snake.getVelocityY() != -1) {
@@ -113,32 +115,29 @@ public class Main extends ApplicationAdapter {
     }
 
     private void renderGameOver() {
-        batch.begin();
-        
-        // Set the font color (optional)
-        font.setColor(1, 0, 0, 1); // Red color for text
-        
-        // Render "Game Over" message
-        String gameOverMessage = "Game Over! Press R to Restart";
-        GlyphLayout layout = new GlyphLayout(font, gameOverMessage);
-        float x = (boardWidth - layout.width) / 2; // Center the text
-        float y = boardHeight / 2; // Position vertically
-        
-        font.draw(batch, layout, x, y); // Draw the text
+    // Display "Game Over" message and restart instructions
+    String gameOverMessage = "Game Over! Press R to Restart";
+    GlyphLayout layout = new GlyphLayout(font, gameOverMessage);
 
-        batch.end();
-        
-        // Handle restart input
-        if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
-            restartGame(); // Implement this method to restart the game
-        }
+    float x = (boardWidth - layout.width) / 2; // Center text horizontally
+    float y = boardHeight / 2; // Center text vertically
+
+    font.setColor(1, 0, 0, 1); // Red color for the font
+    font.draw(batch, layout, x, y); // Draw the text
+
+    // Handle restart input
+    if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
+        restartGame();
+    }
     }
 
     private void restartGame() {
-        snake = new Snake(tileSize, snakeTexture); // Reinitialize snake
-        food.placeFood(snake.getSnakeBody()); // Reinitialize food
-        // Any additional reset logic here
+        snake = new Snake(tileSize, snakeTexture);  // Reset the snake to its initial state
+        food.placeFood(snake.getSnakeBody());       // Reset the food position
+        isGameOver = false;                         // Game can continue  ***
+        moveTimer = 0;                              // Reset move timer to prevent instant movement
     }
+    
 
     @Override
     public void dispose() {
