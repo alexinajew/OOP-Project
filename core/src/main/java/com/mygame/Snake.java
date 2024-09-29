@@ -48,12 +48,15 @@ public class Snake {
         snakeBody.add(new Tile(snakeBody.get(snakeBody.size() - 1).x, snakeBody.get(snakeBody.size() - 1).y));
     }
 
+    // Update this and in main.java
     public boolean isGameOver(int boardWidth, int boardHeight) {
-        // Check if snake hits the wall or itself
+        // Check if snake hits the wall
         Tile head = snakeBody.get(0);
         if (head.x < 0 || head.x >= boardWidth / tileSize || head.y < 0 || head.y >= boardHeight / tileSize) {
             gameOver = true;
         }
+
+        // Check if snake hits itself
         for (int i = 1; i < snakeBody.size(); i++) {
             if (head.x == snakeBody.get(i).x && head.y == snakeBody.get(i).y) {
                 gameOver = true;
@@ -61,7 +64,6 @@ public class Snake {
         }
         return gameOver;
     }
-
     public ArrayList<Tile> getSnakeBody() {
         return snakeBody;
     }
