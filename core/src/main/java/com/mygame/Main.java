@@ -62,31 +62,26 @@ public class Main extends ApplicationAdapter {
         camera.update();
         batch.setProjectionMatrix(camera.combined); // Set projection matrix for batch
 
-        if (inMainMenu) {
-            renderMainMenu(); // Render the main menu
-        } else {
-            // Handle input and movement
-            handleInput();
-            
-            // Update snake movement
-            if (!gameOver) {
-                moveTimer += Gdx.graphics.getDeltaTime();
-                if (moveTimer >= moveDelay) {
-                    snake.move(); // Move snake only when the delay is exceeded
-                    moveTimer = 0; // Reset the timer
-                }
+        // Handle input and movement
+        handleInput();
 
-                // Check if snake eats food
-                if (snake.checkCollision(food.getX(), food.getY())) {
-                    snake.grow();
-                    food.placeFood(snake.getSnakeBody());
-                }
+        moveTimer += Gdx.graphics.getDeltaTime();
+        if (moveTimer >= moveDelay) {
+            snake.move(); // Move snake only when the delay is exceeded
+            moveTimer = 0; // Reset the timer
+        }
 
-                // Check for game over
-                if (snake.isGameOver(boardWidth, boardHeight)) {
-                    gameOver = true; // Set game over state
-                }
-            }
+        // Check for game over
+        if (snake.isGameOver(boardWidth, boardHeight)) {
+            renderGameOver();
+            return; // Prevent further drawing after game over
+        }
+
+        // Check if snake eats food
+        if (snake.checkCollision(food.getX(), food.getY())) {
+            snake.grow();
+            food.placeFood(snake.getSnakeBody());
+        }
 
             // Draw everything
             batch.begin();
