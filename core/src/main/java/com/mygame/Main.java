@@ -30,8 +30,6 @@ public class Main extends ApplicationAdapter {
     private int tileSize = 20; // Adjust tile size if needed
     private int boardWidth = 400; // Adjust board width
     private int boardHeight = 400; // Adjust board height
-    private boolean gameOver = false; // Track game over state
-    private boolean inMainMenu = true; // Track if in main menu
 
     @Override
     public void create() {
@@ -56,8 +54,7 @@ public class Main extends ApplicationAdapter {
         // Clear the screen
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        // Update and apply the camera
+    
         viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
         camera.update();
         batch.setProjectionMatrix(camera.combined); // Set projection matrix for batch
@@ -65,85 +62,33 @@ public class Main extends ApplicationAdapter {
         // Handle input and movement
         handleInput();
 
+        // Update this and in gameover//snake.java
         moveTimer += Gdx.graphics.getDeltaTime();
         if (moveTimer >= moveDelay) {
-            snake.move(); // Move snake only when the delay is exceeded
-            moveTimer = 0; // Reset the timer
-        }
+            snake.move();
+            moveTimer = 0;
 
-        // Check for game over
-        if (snake.isGameOver(boardWidth, boardHeight)) {
-            renderGameOver();
-            return; // Prevent further drawing after game over
-        }
 
-        // Check if snake eats food
-        if (snake.checkCollision(food.getX(), food.getY())) {
-            snake.grow();
-            food.placeFood(snake.getSnakeBody());
-        }
-
-            // Draw everything
-            batch.begin();
-            grid.draw(batch); // Draw grid
-            food.draw(batch); // Draw food
-            snake.draw(batch); // Draw snake
-
-            if (gameOver) {
-                renderGameOver(); // Draw game over message
+            if (snake.isGameOver(boardWidth, boardHeight)) {
+                renderGameOver();
+                return; // Stop further game logic on game over
             }
-            batch.end();
-        }
-    }
 
-    private void renderMainMenu() {
+            // Check if snake eats food
+            if (snake.checkCollision(food.getX(), food.getY())) {
+                snake.grow();
+                food.placeFood(snake.getSnakeBody());
+            }
+        }
+
+        // Draw everything
         batch.begin();
-        batch.draw(menuBackgroundTexture, 0, 0, boardWidth, boardHeight); // Draw background
-        renderMenuText(); // Draw menu text
+        grid.draw(batch); // Draw grid
+        food.draw(batch); // Draw food
+        snake.draw(batch); // Draw snake
         batch.end();
-
-        handleMenuInput(); // Handle input for the menu
     }
-
-    private void renderMenuText() {
-        // Set the font color (optional)
-        font.setColor(1, 1, 1, 1); // White color for text
-        
-        // Render "Snake Game" title
-        String title = "Snake Game";
-        GlyphLayout layout = new GlyphLayout(font, title);
-        float x = (boardWidth - layout.width) / 2; // Center the title
-        float y = boardHeight - 50; // Position the title near the top
-        
-        font.draw(batch, layout, x, y); // Draw the title
-
-        // Render "Press Space to Start" instruction
-        String instruction = "Press SPACE to Start";
-        GlyphLayout instructionLayout = new GlyphLayout(font, instruction);
-        x = (boardWidth - instructionLayout.width) / 2; // Center the instruction
-        y = boardHeight / 2; // Position vertically
-        
-        font.draw(batch, instructionLayout, x, y); // Draw the instruction
-    }
-
-    private void handleMenuInput() {
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
-            startGame(); // Start the game on SPACE key press
-        }
-    }
-
-    private void startGame() {
-        inMainMenu = false; // Exit the main menu
-        initializeGame(); // Initialize game elements
-    }
-
-    private void initializeGame() {
-        grid = new Grid(boardWidth, boardHeight, tileSize, gridTexture);
-        food = new Food(tileSize, boardWidth, boardHeight, foodTexture);
-        snake = new Snake(tileSize, snakeTexture);
-        food.placeFood(snake.getSnakeBody()); // Place food at a valid location
-        gameOver = false; // Reset game over state
-    }
+    
 
     private void handleInput() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.UP) && snake.getVelocityY() != -1) {
@@ -161,6 +106,8 @@ public class Main extends ApplicationAdapter {
     }
 
     private void renderGameOver() {
+        batch.begin();
+        
         // Set the font color (optional)
         font.setColor(1, 0, 0, 1); // Red color for text
         
@@ -172,15 +119,18 @@ public class Main extends ApplicationAdapter {
         
         font.draw(batch, layout, x, y); // Draw the text
 
+        batch.end();
+        
         // Handle restart input
         if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
-            restartGame(); // Restart the game
+            restartGame(); // Implement this method to restart the game
         }
     }
 
     private void restartGame() {
-        initializeGame(); // Reinitialize the game state
-        inMainMenu = false; // Exit main menu if it was active
+        snake = new Snake(tileSize, snakeTexture); // Reinitialize snake
+        food.placeFood(snake.getSnakeBody()); // Reinitialize food
+        // Any additional reset logic here
     }
 
     @Override
