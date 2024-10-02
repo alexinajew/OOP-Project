@@ -1,0 +1,78 @@
+package com.mygame;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+
+public class MainMenuScreen implements Screen {
+    private final Main game; // Reference to the main game class
+    private BitmapFont font;
+
+    public MainMenuScreen(Main game) {
+        this.game = game;
+        this.font = new BitmapFont(); // Default font
+    }
+
+    @Override
+    public void show() {
+    }
+
+    @Override
+    public void render(float delta) {
+        // Clear the screen
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        // Begin drawing
+        game.batch.begin();
+
+        // Draw the title and instructions
+        String title = "Snake Game";
+        String startMessage = "Press ENTER to Start";
+
+        GlyphLayout layoutTitle = new GlyphLayout(font, title);
+        GlyphLayout layoutStart = new GlyphLayout(font, startMessage);
+
+        // Center the text on the screen
+        float titleX = (Gdx.graphics.getWidth() - layoutTitle.width) / 2;
+        float titleY = Gdx.graphics.getHeight() / 2 + 40; // Position title a bit higher
+
+        float startX = (Gdx.graphics.getWidth() - layoutStart.width) / 2;
+        float startY = Gdx.graphics.getHeight() / 2 - 40; // Position start message a bit lower
+
+        // Render text
+        font.draw(game.batch, layoutTitle, titleX, titleY);
+        font.draw(game.batch, layoutStart, startX, startY);
+
+        game.batch.end();
+
+        // Handle input for starting the game
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+            game.setScreen(new GameScreen(game)); // Start the game when ENTER is pressed
+        }
+    }
+
+    @Override
+    public void resize(int width, int height) {
+    }
+
+    @Override
+    public void pause() {
+    }
+
+    @Override
+    public void resume() {
+    }
+
+    @Override
+    public void hide() {
+    }
+
+    @Override
+    public void dispose() {
+        font.dispose();
+    }
+}
