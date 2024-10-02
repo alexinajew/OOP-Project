@@ -6,26 +6,23 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class Drop extends Game {
 
-    public SpriteBatch batch;  // Made public to allow access by screens
-    public BitmapFont font;    // Made public to allow access by screens
+    SpriteBatch batch;
+    BitmapFont font;
 
-    @Override
     public void create() {
         batch = new SpriteBatch();
-        font = new BitmapFont(); // Using LibGDX's default Arial font
-
-        // Set the screen to the MainMenuScreen at the start of the game
+        // Use LibGDX's default Arial font.
+        font = new BitmapFont();
         this.setScreen(new MainMenuScreen(this));
     }
 
-    @Override
     public void render() {
-        super.render(); // This ensures the currently active screen is rendered
+        super.render(); // important!
     }
 
-    @Override
     public void dispose() {
         batch.dispose();
         font.dispose();
     }
+
 }

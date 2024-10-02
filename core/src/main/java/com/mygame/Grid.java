@@ -7,19 +7,19 @@ public class Grid {
     private int width;
     private int height;
     private int tileSize;
-    private Texture texture;
+    private Texture gridTexture;
 
-    public Grid(int width, int height, int tileSize, Texture texture) {
+    public Grid(int width, int height, int tileSize, Texture gridTexture) {
         this.width = width;
         this.height = height;
         this.tileSize = tileSize;
-        this.texture = texture;
+        this.gridTexture = gridTexture;
     }
 
-    public void draw(SpriteBatch batch) {
+    public void draw(SpriteBatch spriteBatch) {
         for (int x = 0; x < width; x += tileSize) {
             for (int y = 0; y < height; y += tileSize) {
-                batch.draw(texture, x, y, tileSize, tileSize);
+                spriteBatch.draw(gridTexture, x, y, tileSize, tileSize);
             }
         }
     }
