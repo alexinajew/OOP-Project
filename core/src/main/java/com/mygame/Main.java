@@ -47,7 +47,7 @@ public class Main extends ApplicationAdapter {
         // Load font
         font = new BitmapFont(); // Using the default system font
 
-        grid = new Grid(boardWidth, boardHeight, tileSize, gridTexture);
+        grid = new Grid(boardWidth, boardHeight,gridTexture);
         food = new Food(tileSize, boardWidth, boardHeight, foodTexture);
         snake = new Snake(tileSize, snakeTexture);
 
