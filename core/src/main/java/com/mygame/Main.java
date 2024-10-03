@@ -7,18 +7,17 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont; // Import for font rendering
 import com.badlogic.gdx.graphics.g2d.GlyphLayout; // For text layout
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.GL20; // Import for OpenGL constants
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class Main extends ApplicationAdapter {
     private SpriteBatch batch;
-    private ShapeRenderer shapeRenderer;
     private Texture gridTexture;
     private Texture foodTexture;
     private Texture snakeTexture; // Texture for the snake
+    private Texture menuBackgroundTexture; // Texture for main menu background
     private BitmapFont font; // Font for rendering text
     private Grid grid;
     private Food food;
@@ -31,29 +30,25 @@ public class Main extends ApplicationAdapter {
     private int tileSize = 20; // Adjust tile size if needed
     private int boardWidth = 400; // Adjust board width
     private int boardHeight = 400; // Adjust board height
+    private boolean gameOver = false; // Track game over state
+    private boolean inMainMenu = true; // Track if in main menu
 
     @Override
     public void create() {
         batch = new SpriteBatch();
-        shapeRenderer = new ShapeRenderer();
-
         // Load textures
         gridTexture = new Texture(Gdx.files.internal("board.png")); // Update this path
         foodTexture = new Texture(Gdx.files.internal("food.png")); // Update this path
         snakeTexture = new Texture(Gdx.files.internal("snake.png")); // Update this path
+        menuBackgroundTexture = new Texture(Gdx.files.internal("menu_background.png")); // Background for main menu
 
         // Load font
         font = new BitmapFont(); // Using the default system font
 
-        grid = new Grid(boardWidth, boardHeight, tileSize, gridTexture);
-        food = new Food(tileSize, boardWidth, boardHeight, foodTexture);
-        snake = new Snake(tileSize, snakeTexture);
-
+        // Setup camera and viewport
         camera = new OrthographicCamera();
         viewport = new FitViewport(boardWidth, boardHeight, camera); // Using FitViewport
         viewport.apply(); // Apply the viewport to the camera
-
-        food.placeFood(snake.getSnakeBody()); // Place food
     }
 
     @Override
@@ -67,33 +62,92 @@ public class Main extends ApplicationAdapter {
         camera.update();
         batch.setProjectionMatrix(camera.combined); // Set projection matrix for batch
 
-        // Handle input and movement
-        handleInput();
+        if (inMainMenu) {
+            renderMainMenu(); // Render the main menu
+        } else {
+            // Handle input and movement
+            handleInput();
+            
+            // Update snake movement
+            if (!gameOver) {
+                moveTimer += Gdx.graphics.getDeltaTime();
+                if (moveTimer >= moveDelay) {
+                    snake.move(); // Move snake only when the delay is exceeded
+                    moveTimer = 0; // Reset the timer
+                }
 
-        moveTimer += Gdx.graphics.getDeltaTime();
-        if (moveTimer >= moveDelay) {
-            snake.move(); // Move snake only when the delay is exceeded
-            moveTimer = 0; // Reset the timer
+                // Check if snake eats food
+                if (snake.checkCollision(food.getX(), food.getY())) {
+                    snake.grow();
+                    food.placeFood(snake.getSnakeBody());
+                }
+
+                // Check for game over
+                if (snake.isGameOver(boardWidth, boardHeight)) {
+                    gameOver = true; // Set game over state
+                }
+            }
+
+            // Draw everything
+            batch.begin();
+            grid.draw(batch); // Draw grid
+            food.draw(batch); // Draw food
+            snake.draw(batch); // Draw snake
+
+            if (gameOver) {
+                renderGameOver(); // Draw game over message
+            }
+            batch.end();
         }
+    }
 
-        // Check for game over
-        if (snake.isGameOver(boardWidth, boardHeight)) {
-            renderGameOver();
-            return; // Prevent further drawing after game over
-        }
-
-        // Check if snake eats food
-        if (snake.checkCollision(food.getX(), food.getY())) {
-            snake.grow();
-            food.placeFood(snake.getSnakeBody());
-        }
-
-        // Draw everything
+    private void renderMainMenu() {
         batch.begin();
-        grid.draw(batch); // Draw grid
-        food.draw(batch); // Draw food
-        snake.draw(batch); // Draw snake
+        batch.draw(menuBackgroundTexture, 0, 0, boardWidth, boardHeight); // Draw background
+        renderMenuText(); // Draw menu text
         batch.end();
+
+        handleMenuInput(); // Handle input for the menu
+    }
+
+    private void renderMenuText() {
+        // Set the font color (optional)
+        font.setColor(1, 1, 1, 1); // White color for text
+        
+        // Render "Snake Game" title
+        String title = "Snake Game";
+        GlyphLayout layout = new GlyphLayout(font, title);
+        float x = (boardWidth - layout.width) / 2; // Center the title
+        float y = boardHeight - 50; // Position the title near the top
+        
+        font.draw(batch, layout, x, y); // Draw the title
+
+        // Render "Press Space to Start" instruction
+        String instruction = "Press SPACE to Start";
+        GlyphLayout instructionLayout = new GlyphLayout(font, instruction);
+        x = (boardWidth - instructionLayout.width) / 2; // Center the instruction
+        y = boardHeight / 2; // Position vertically
+        
+        font.draw(batch, instructionLayout, x, y); // Draw the instruction
+    }
+
+    private void handleMenuInput() {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+            startGame(); // Start the game on SPACE key press
+        }
+    }
+
+    private void startGame() {
+        inMainMenu = false; // Exit the main menu
+        initializeGame(); // Initialize game elements
+    }
+
+    private void initializeGame() {
+        grid = new Grid(boardWidth, boardHeight, tileSize, gridTexture);
+        food = new Food(tileSize, boardWidth, boardHeight, foodTexture);
+        snake = new Snake(tileSize, snakeTexture);
+        food.placeFood(snake.getSnakeBody()); // Place food at a valid location
+        gameOver = false; // Reset game over state
     }
 
     private void handleInput() {
@@ -112,8 +166,6 @@ public class Main extends ApplicationAdapter {
     }
 
     private void renderGameOver() {
-        batch.begin();
-        
         // Set the font color (optional)
         font.setColor(1, 0, 0, 1); // Red color for text
         
@@ -125,27 +177,24 @@ public class Main extends ApplicationAdapter {
         
         font.draw(batch, layout, x, y); // Draw the text
 
-        batch.end();
-        
         // Handle restart input
         if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
-            restartGame(); // Implement this method to restart the game
+            restartGame(); // Restart the game
         }
     }
 
     private void restartGame() {
-        snake = new Snake(tileSize, snakeTexture); // Reinitialize snake
-        food.placeFood(snake.getSnakeBody()); // Reinitialize food
-        // Any additional reset logic here
+        initializeGame(); // Reinitialize the game state
+        inMainMenu = false; // Exit main menu if it was active
     }
 
     @Override
     public void dispose() {
         batch.dispose();
-        shapeRenderer.dispose();
         gridTexture.dispose(); // Dispose grid texture
         foodTexture.dispose(); // Dispose food texture
         snakeTexture.dispose(); // Dispose snake texture
+        menuBackgroundTexture.dispose(); // Dispose menu background texture
         font.dispose(); // Dispose font
     }
 }
