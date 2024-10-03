@@ -1,7 +1,8 @@
 package com.mygame;
 
 public class Tile {
-    int x, y;
+    public int x;
+    public int y;
 
     public Tile(int x, int y) {
         this.x = x;

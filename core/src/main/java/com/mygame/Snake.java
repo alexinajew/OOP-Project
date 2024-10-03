@@ -1,7 +1,7 @@
 package com.mygame;
 
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.util.ArrayList;
 
@@ -10,9 +10,11 @@ public class Snake {
     private int velocityX, velocityY;
     private int tileSize;
     private boolean gameOver;
+    private Texture snakeTexture; // Texture for the snake
 
-    public Snake(int tileSize) {
+    public Snake(int tileSize, Texture snakeTexture) {
         this.tileSize = tileSize;
+        this.snakeTexture = snakeTexture; // Initialize snake texture
         snakeBody = new ArrayList<>();
         snakeBody.add(new Tile(5, 5));  // Initial snake head position
         velocityX = 1; // Initial velocity
@@ -32,10 +34,9 @@ public class Snake {
         snakeBody.get(0).y += velocityY;
     }
 
-    public void draw(ShapeRenderer shapeRenderer) {
-        shapeRenderer.setColor(Color.GREEN);
+    public void draw(SpriteBatch spriteBatch) { // Change to accept SpriteBatch
         for (Tile tile : snakeBody) {
-            shapeRenderer.rect(tile.x * tileSize, tile.y * tileSize, tileSize, tileSize);
+            spriteBatch.draw(snakeTexture, tile.x * tileSize, tile.y * tileSize, tileSize, tileSize);
         }
     }
 
@@ -47,12 +48,15 @@ public class Snake {
         snakeBody.add(new Tile(snakeBody.get(snakeBody.size() - 1).x, snakeBody.get(snakeBody.size() - 1).y));
     }
 
+    // Update this and in main.java
     public boolean isGameOver(int boardWidth, int boardHeight) {
-        // Check if snake hits the wall or itself
+        // Check if snake hits the wall
         Tile head = snakeBody.get(0);
         if (head.x < 0 || head.x >= boardWidth / tileSize || head.y < 0 || head.y >= boardHeight / tileSize) {
             gameOver = true;
         }
+
+        // Check if snake hits itself
         for (int i = 1; i < snakeBody.size(); i++) {
             if (head.x == snakeBody.get(i).x && head.y == snakeBody.get(i).y) {
                 gameOver = true;
@@ -60,7 +64,6 @@ public class Snake {
         }
         return gameOver;
     }
-
     public ArrayList<Tile> getSnakeBody() {
         return snakeBody;
     }
