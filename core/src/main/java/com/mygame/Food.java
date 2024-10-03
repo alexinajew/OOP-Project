@@ -3,39 +3,44 @@ package com.mygame;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-import java.util.ArrayList;
 import java.util.Random;
+import java.util.ArrayList;
 
 public class Food {
-    private int x, y;
+    private int x;
+    private int y;
     private int tileSize;
-    private int boardWidth, boardHeight;
-    private Random random;
-    private Texture foodTexture; // Texture for the food
+    private int boardWidth;
+    private int boardHeight;
+    private Texture foodTexture;
 
     public Food(int tileSize, int boardWidth, int boardHeight, Texture foodTexture) {
         this.tileSize = tileSize;
         this.boardWidth = boardWidth;
         this.boardHeight = boardHeight;
-        this.foodTexture = foodTexture; // Initialize food texture
-        random = new Random();
-        placeFood(new ArrayList<>());
+        this.foodTexture = foodTexture;
+        placeFood(null); // Initially place food
     }
 
     public void placeFood(ArrayList<Tile> snakeBody) {
-        boolean validPlacement = false;
-        while (!validPlacement) {
-            x = random.nextInt(boardWidth / tileSize);
-            y = random.nextInt(boardHeight / tileSize);
+        Random rand = new Random();
+        boolean foodOnSnake;
 
-            validPlacement = true;
-            for (Tile part : snakeBody) {
-                if (part.x == x && part.y == y) {
-                    validPlacement = false;
-                    break;
+        do {
+            foodOnSnake = false;
+            x = rand.nextInt(boardWidth / tileSize);
+            y = rand.nextInt(boardHeight / tileSize);
+
+            // Check if food is placed on the snake
+            if (snakeBody != null) {
+                for (Tile tile : snakeBody) {
+                    if (tile.x == x && tile.y == y) {
+                        foodOnSnake = true;
+                        break;
+                    }
                 }
             }
-        }
+        } while (foodOnSnake);
     }
 
     public void draw(SpriteBatch spriteBatch) {

@@ -7,18 +7,17 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont; // Import for font rendering
 import com.badlogic.gdx.graphics.g2d.GlyphLayout; // For text layout
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.GL20; // Import for OpenGL constants
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class Main extends ApplicationAdapter {
     private SpriteBatch batch;
-    private ShapeRenderer shapeRenderer;
     private Texture gridTexture;
     private Texture foodTexture;
     private Texture snakeTexture; // Texture for the snake
+    private Texture menuBackgroundTexture; // Texture for main menu background
     private BitmapFont font; // Font for rendering text
     private Grid grid;
     private Food food;
@@ -35,25 +34,19 @@ public class Main extends ApplicationAdapter {
     @Override
     public void create() {
         batch = new SpriteBatch();
-        shapeRenderer = new ShapeRenderer();
-
         // Load textures
         gridTexture = new Texture(Gdx.files.internal("board.png")); // Update this path
         foodTexture = new Texture(Gdx.files.internal("food.png")); // Update this path
         snakeTexture = new Texture(Gdx.files.internal("snake.png")); // Update this path
+        menuBackgroundTexture = new Texture(Gdx.files.internal("menu_background.png")); // Background for main menu
 
         // Load font
         font = new BitmapFont(); // Using the default system font
 
-        grid = new Grid(boardWidth, boardHeight, tileSize, gridTexture);
-        food = new Food(tileSize, boardWidth, boardHeight, foodTexture);
-        snake = new Snake(tileSize, snakeTexture);
-
+        // Setup camera and viewport
         camera = new OrthographicCamera();
         viewport = new FitViewport(boardWidth, boardHeight, camera); // Using FitViewport
         viewport.apply(); // Apply the viewport to the camera
-
-        food.placeFood(snake.getSnakeBody()); // Place food
     }
 
     @Override
@@ -61,8 +54,7 @@ public class Main extends ApplicationAdapter {
         // Clear the screen
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        // Update and apply the camera
+    
         viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
         camera.update();
         batch.setProjectionMatrix(camera.combined); // Set projection matrix for batch
@@ -70,22 +62,23 @@ public class Main extends ApplicationAdapter {
         // Handle input and movement
         handleInput();
 
+        // Update this and in gameover//snake.java
         moveTimer += Gdx.graphics.getDeltaTime();
         if (moveTimer >= moveDelay) {
-            snake.move(); // Move snake only when the delay is exceeded
-            moveTimer = 0; // Reset the timer
-        }
+            snake.move();
+            moveTimer = 0;
 
-        // Check for game over
-        if (snake.isGameOver(boardWidth, boardHeight)) {
-            renderGameOver();
-            return; // Prevent further drawing after game over
-        }
 
-        // Check if snake eats food
-        if (snake.checkCollision(food.getX(), food.getY())) {
-            snake.grow();
-            food.placeFood(snake.getSnakeBody());
+            if (snake.isGameOver(boardWidth, boardHeight)) {
+                renderGameOver();
+                return; // Stop further game logic on game over
+            }
+
+            // Check if snake eats food
+            if (snake.checkCollision(food.getX(), food.getY())) {
+                snake.grow();
+                food.placeFood(snake.getSnakeBody());
+            }
         }
 
         // Draw everything
@@ -95,6 +88,7 @@ public class Main extends ApplicationAdapter {
         snake.draw(batch); // Draw snake
         batch.end();
     }
+    
 
     private void handleInput() {
         if (Gdx.input.isKeyJustPressed(Input.Keys.UP) && snake.getVelocityY() != -1) {
@@ -142,10 +136,10 @@ public class Main extends ApplicationAdapter {
     @Override
     public void dispose() {
         batch.dispose();
-        shapeRenderer.dispose();
         gridTexture.dispose(); // Dispose grid texture
         foodTexture.dispose(); // Dispose food texture
         snakeTexture.dispose(); // Dispose snake texture
+        menuBackgroundTexture.dispose(); // Dispose menu background texture
         font.dispose(); // Dispose font
     }
 }
