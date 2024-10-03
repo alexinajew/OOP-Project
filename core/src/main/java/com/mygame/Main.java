@@ -7,18 +7,17 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont; // Import for font rendering
 import com.badlogic.gdx.graphics.g2d.GlyphLayout; // For text layout
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.GL20; // Import for OpenGL constants
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class Main extends ApplicationAdapter {
     private SpriteBatch batch;
-    private ShapeRenderer shapeRenderer;
     private Texture gridTexture;
     private Texture foodTexture;
     private Texture snakeTexture; // Texture for the snake
+    private Texture menuBackgroundTexture; // Texture for main menu background
     private BitmapFont font; // Font for rendering text
     private Grid grid;
     private Food food;
@@ -37,25 +36,19 @@ public class Main extends ApplicationAdapter {
     @Override
     public void create() {
         batch = new SpriteBatch();
-        shapeRenderer = new ShapeRenderer();
-
         // Load textures
         gridTexture = new Texture(Gdx.files.internal("board.png")); // Update this path
         foodTexture = new Texture(Gdx.files.internal("food.png")); // Update this path
         snakeTexture = new Texture(Gdx.files.internal("snake.png")); // Update this path
+        menuBackgroundTexture = new Texture(Gdx.files.internal("menu_background.png")); // Background for main menu
 
         // Load font
         font = new BitmapFont(); // Using the default system font
 
-        grid = new Grid(boardWidth, boardHeight,gridTexture);
-        food = new Food(tileSize, boardWidth, boardHeight, foodTexture);
-        snake = new Snake(tileSize, snakeTexture);
-
+        // Setup camera and viewport
         camera = new OrthographicCamera();
         viewport = new FitViewport(boardWidth, boardHeight, camera); // Using FitViewport
         viewport.apply(); // Apply the viewport to the camera
-
-        food.placeFood(snake.getSnakeBody()); // Place food
     }
 
     @Override
@@ -142,10 +135,10 @@ public class Main extends ApplicationAdapter {
     @Override
     public void dispose() {
         batch.dispose();
-        shapeRenderer.dispose();
         gridTexture.dispose(); // Dispose grid texture
         foodTexture.dispose(); // Dispose food texture
         snakeTexture.dispose(); // Dispose snake texture
+        menuBackgroundTexture.dispose(); // Dispose menu background texture
         font.dispose(); // Dispose font
     }
 }
