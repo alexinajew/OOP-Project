@@ -1,168 +1,149 @@
 package com.mygame;
 
-import java.util.Iterator;
-
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input.Keys;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.audio.Sound;
-import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.utils.TimeUtils;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.utils.viewport.Viewport;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.Screen;
 
 public class GameScreen implements Screen {
+    private SpriteBatch batch;
+    private Texture gridTexture;
+    private Texture foodTexture;
+    private Texture snakeTexture;
+    private BitmapFont font;
+    private Grid grid;
+    private Food food;
+    private Snake snake;
+    private OrthographicCamera camera;
+    private Viewport viewport;
+    private float moveTimer = 0;
+    private float moveDelay = 0.1f;
+    private int tileSize = 20;
+    private int boardWidth = 400;
+    private int boardHeight = 400;
+    private boolean isGameOver = false;
 
-    final Drop game;
+    @Override
+    public void show() {
+        batch = new SpriteBatch();
+        gridTexture = new Texture(Gdx.files.internal("board.png"));
+        foodTexture = new Texture(Gdx.files.internal("food.png"));
+        snakeTexture = new Texture(Gdx.files.internal("snake.png"));
+        font = new BitmapFont();
 
-    Texture dropImage;
-    Texture bucketImage;
-    Sound dropSound;
-    Music rainMusic;
-    OrthographicCamera camera;
-    Rectangle bucket;
-    Array<Rectangle> raindrops;
-    long lastDropTime;
-    int dropsGathered;
-
-    public GameScreen(final Drop gam) {
-        this.game = gam;
-
-        // load the images for the droplet and the bucket, 64x64 pixels each
-        dropImage = new Texture(Gdx.files.internal("droplet.png"));
-        bucketImage = new Texture(Gdx.files.internal("bucket.png"));
-
-        // load the drop sound effect and the rain background "music"
-        dropSound = Gdx.audio.newSound(Gdx.files.internal("drop.wav"));
-        rainMusic = Gdx.audio.newMusic(Gdx.files.internal("rain.mp3"));
-        rainMusic.setLooping(true);
-
-        // create the camera and the SpriteBatch
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, 800, 480);
+        viewport = new FitViewport(boardWidth, boardHeight, camera);
+        viewport.apply();
 
-        // create a Rectangle to logically represent the bucket
-        bucket = new Rectangle();
-        bucket.x = 800 / 2 - 64 / 2; // center the bucket horizontally
-        bucket.y = 20; // bottom left corner of the bucket is 20 pixels above
-        // the bottom screen edge
-        bucket.width = 64;
-        bucket.height = 64;
-
-        // create the raindrops array and spawn the first raindrop
-        raindrops = new Array<Rectangle>();
-        spawnRaindrop();
-
-    }
-
-    private void spawnRaindrop() {
-        Rectangle raindrop = new Rectangle();
-        raindrop.x = MathUtils.random(0, 800 - 64);
-        raindrop.y = 480;
-        raindrop.width = 64;
-        raindrop.height = 64;
-        raindrops.add(raindrop);
-        lastDropTime = TimeUtils.nanoTime();
+        grid = new Grid(boardWidth, boardHeight, gridTexture);
+        food = new Food(tileSize, boardWidth, boardHeight, foodTexture);
+        snake = new Snake(tileSize, snakeTexture);
+        food.placeFood(snake.getSnakeBody());
     }
 
     @Override
     public void render(float delta) {
-        // clear the screen with a dark blue color. The
-        // arguments to clear are the red, green
-        // blue and alpha component in the range [0,1]
-        // of the color to be used to clear the screen.
-        ScreenUtils.clear(0, 0, 0.2f, 1);
+        Gdx.gl.glClearColor(0, 0, 0, 1);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // tell the camera to update its matrices.
+        viewport.update(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
         camera.update();
+        batch.setProjectionMatrix(camera.combined);
 
-        // tell the SpriteBatch to render in the
-        // coordinate system specified by the camera.
-        game.batch.setProjectionMatrix(camera.combined);
+        batch.begin();
+        grid.draw(batch);
+        food.draw(batch);
+        snake.draw(batch);
 
-        // begin a new batch and draw the bucket and
-        // all drops
-        game.batch.begin();
-        game.font.draw(game.batch, "Drops Collected: " + dropsGathered, 0, 480);
-        game.batch.draw(bucketImage, bucket.x, bucket.y);
-        for (Rectangle raindrop : raindrops) {
-            game.batch.draw(dropImage, raindrop.x, raindrop.y);
-        }
-        game.batch.end();
+        if (isGameOver) {
+            renderGameOver(); 
+        } else {
+            handleInput();
+            moveTimer += delta;
+            if (moveTimer >= moveDelay) {
+                snake.move();
+                moveTimer = 0;
 
-        // process user input
-        if (Gdx.input.isTouched()) {
-            Vector3 touchPos = new Vector3();
-            touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
-            camera.unproject(touchPos);
-            bucket.x = touchPos.x - 64 / 2;
-        }
-        if (Gdx.input.isKeyPressed(Keys.LEFT))
-            bucket.x -= 200 * Gdx.graphics.getDeltaTime();
-        if (Gdx.input.isKeyPressed(Keys.RIGHT))
-            bucket.x += 200 * Gdx.graphics.getDeltaTime();
+                if (snake.isGameOver(boardWidth, boardHeight)) {
+                    isGameOver = true; 
+                }
 
-        // make sure the bucket stays within the screen bounds
-        if (bucket.x < 0)
-            bucket.x = 0;
-        if (bucket.x > 800 - 64)
-            bucket.x = 800 - 64;
-
-        // check if we need to create a new raindrop
-        if (TimeUtils.nanoTime() - lastDropTime > 1000000000)
-            spawnRaindrop();
-
-        // move the raindrops, remove any that are beneath the bottom edge of
-        // the screen or that hit the bucket. In the later case we play back
-        // a sound effect as well.
-        Iterator<Rectangle> iter = raindrops.iterator();
-        while (iter.hasNext()) {
-            Rectangle raindrop = iter.next();
-            raindrop.y -= 200 * Gdx.graphics.getDeltaTime();
-            if (raindrop.y + 64 < 0)
-                iter.remove();
-            if (raindrop.overlaps(bucket)) {
-                dropsGathered++;
-                dropSound.play();
-                iter.remove();
+                if (snake.checkCollision(food.getX(), food.getY())) {
+                    snake.grow();
+                    food.placeFood(snake.getSnakeBody());
+                }
             }
         }
+
+        batch.end(); 
+    }
+
+    private void handleInput() {
+        if (Gdx.input.isKeyJustPressed(Input.Keys.UP) && snake.getVelocityY() != -1) {
+            snake.setVelocity(0, 1);
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.DOWN) && snake.getVelocityY() != 1) {
+            snake.setVelocity(0, -1);
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT) && snake.getVelocityX() != 1) {
+            snake.setVelocity(-1, 0);
+        }
+        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT) && snake.getVelocityX() != -1) {
+            snake.setVelocity(1, 0);
+        }
+    }
+
+    private void renderGameOver() {
+        String gameOverMessage = "Game Over! Press R to Restart";
+        GlyphLayout layout = new GlyphLayout(font, gameOverMessage);
+
+        float x = (boardWidth - layout.width) / 2;
+        float y = boardHeight / 2;
+
+        font.setColor(1, 0, 0, 1);
+        font.draw(batch, layout, x, y);
+
+        if (Gdx.input.isKeyJustPressed(Input.Keys.R)) {
+            restartGame();
+        }
+    }
+
+    private void restartGame() {
+        snake = new Snake(tileSize, snakeTexture);
+        food.placeFood(snake.getSnakeBody());
+        isGameOver = false;
+        moveTimer = 0;
     }
 
     @Override
     public void resize(int width, int height) {
+        viewport.update(width, height);
     }
 
     @Override
-    public void show() {
-        // start the playback of the background music
-        // when the screen is shown
-        rainMusic.play();
-    }
+    public void pause() {}
+
+    @Override
+    public void resume() {}
 
     @Override
     public void hide() {
-    }
-
-    @Override
-    public void pause() {
-    }
-
-    @Override
-    public void resume() {
+        dispose();
     }
 
     @Override
     public void dispose() {
-        dropImage.dispose();
-        bucketImage.dispose();
-        dropSound.dispose();
-        rainMusic.dispose();
+        batch.dispose();
+        gridTexture.dispose();
+        foodTexture.dispose();
+        snakeTexture.dispose();
+        font.dispose();
     }
-
 }
