@@ -62,6 +62,11 @@ public class GameScreen implements Screen {
         food.draw(batch);
         snake.draw(batch);
 
+        //score
+        font.getData().setScale(1);  
+        font.draw(batch, "Score: " + snake.getScore(), 10, boardHeight - 10);
+
+
         if (isGameOver) {
             renderGameOver(); 
         } else {
