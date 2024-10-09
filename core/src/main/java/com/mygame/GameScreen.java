@@ -30,7 +30,7 @@ public class GameScreen implements Screen {
     private int boardHeight = 400;
     private boolean isGameOver = false;
     private final float speedIncreaseFactor = 0.01f; // Amount to decrease moveDelay
-    private final int applesForSpeedIncrease = 5; // Every 2 apples, speed increases
+    private final int applesForSpeedIncrease = 5; // Every 5 apples, speed increases
 
     @Override  
     public void show() {
