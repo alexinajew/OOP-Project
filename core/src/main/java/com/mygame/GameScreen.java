@@ -24,13 +24,15 @@ public class GameScreen implements Screen {
     private OrthographicCamera camera;
     private Viewport viewport;
     private float moveTimer = 0;
-    private float moveDelay = 0.1f;
+    private float moveDelay = 0.1f; // Initial speed (increase this to start slower)
     private int tileSize = 20;
     private int boardWidth = 400;
     private int boardHeight = 400;
     private boolean isGameOver = false;
+    private final float speedIncreaseFactor = 0.01f; // Amount to decrease moveDelay
+    private final int applesForSpeedIncrease = 5; // Every 2 apples, speed increases
 
-    @Override
+    @Override  
     public void show() {
         batch = new SpriteBatch();
         gridTexture = new Texture(Gdx.files.internal("board.png"));
@@ -62,10 +64,19 @@ public class GameScreen implements Screen {
         food.draw(batch);
         snake.draw(batch);
 
-        //score
+        // Display score
         font.getData().setScale(1);  
         font.draw(batch, "Score: " + snake.getScore(), 10, boardHeight - 10);
 
+        if (snake.checkCollision(food.getX(), food.getY())) {
+            snake.grow();
+            food.placeFood(snake.getSnakeBody());
+            
+            // Increase speed every applesForSpeedIncrease apples
+            if (snake.getScore() % applesForSpeedIncrease == 0) {
+                moveDelay = Math.max(0.01f, moveDelay - speedIncreaseFactor); // Ensure moveDelay doesn't go below 0.01f
+            }
+        }
 
         if (isGameOver) {
             renderGameOver(); 
@@ -76,13 +87,9 @@ public class GameScreen implements Screen {
                 snake.move();
                 moveTimer = 0;
 
+                // Check if the game is over
                 if (snake.isGameOver(boardWidth, boardHeight)) {
                     isGameOver = true; 
-                }
-
-                if (snake.checkCollision(food.getX(), food.getY())) {
-                    snake.grow();
-                    food.placeFood(snake.getSnakeBody());
                 }
             }
         }
@@ -125,6 +132,7 @@ public class GameScreen implements Screen {
         food.placeFood(snake.getSnakeBody());
         isGameOver = false;
         moveTimer = 0;
+        moveDelay = 0.1f; // Reset speed to initial value
     }
 
     @Override
