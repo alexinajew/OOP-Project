@@ -24,12 +24,12 @@ public class GameScreen implements Screen {
     private OrthographicCamera camera;
     private Viewport viewport;
     private float moveTimer = 0;
-    private float moveDelay = 0.1f; // Initial speed (increase this to start slower)
+    private float moveDelay = 0.2f; // Initial speed (increase this to start slower)
     private int tileSize = 20;
     private int boardWidth = 400;
     private int boardHeight = 400;
     private boolean isGameOver = false;
-    private final float speedIncreaseFactor = 0.01f; // Amount to decrease moveDelay
+    private final float speedIncreaseFactor = 0.02f; // Amount to decrease moveDelay
     private final int applesForSpeedIncrease = 5; // Every 5 apples, speed increases
 
     @Override  
